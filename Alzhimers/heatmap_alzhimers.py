@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 
@@ -20,6 +22,19 @@ classes = [
 ]
 
 # --------------------------------
+# PATHS
+# --------------------------------
+
+BASE_DIR = Path(__file__).resolve().parent
+
+model_path = BASE_DIR / "models" / "alzhimers_model.pth"
+
+output_dir = BASE_DIR / "outputs"
+output_dir.mkdir(exist_ok=True)
+
+save_path = output_dir / "outputs.jpg"
+
+# --------------------------------
 # LOAD MODEL
 # --------------------------------
 
@@ -32,7 +47,7 @@ model.fc = nn.Linear(
 
 model.load_state_dict(
     torch.load(
-        r"C:\Users\masre\OneDrive\Desktop\Mini Project Code\Alzhimers\models\alzhimers_model.pth",
+        model_path,
         map_location="cpu"
     )
 )
@@ -84,6 +99,7 @@ with torch.no_grad():
     )
 
 print()
+
 print(
     "Prediction:",
     classes[prediction.item()]
@@ -132,25 +148,29 @@ heatmap_image = Image.fromarray(
     visualization
 )
 
-save_path = (
-    r"C:\Users\masre\OneDrive\Desktop\Mini Project Code\Alzhimers\outputs\outputs.jpg"
-)
-
 heatmap_image.save(
     save_path
 )
 
 print()
-print("Heatmap saved successfully!")
+
+print(
+    "Heatmap saved successfully!"
+)
 
 print(
     "Location:",
-    save_path
+    str(save_path)
 )
 
 print()
+
 print("Heatmap Interpretation:")
+
 print("🔴 Red    -> Very High Attention")
+
 print("🟡 Yellow -> High Attention")
+
 print("🟢 Green  -> Moderate Attention")
+
 print("🔵 Blue   -> Low Attention")

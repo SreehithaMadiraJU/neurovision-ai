@@ -1,10 +1,15 @@
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 
 from torchvision import models, transforms
 from PIL import Image
 
-# Classes
+# --------------------------------
+# CLASSES
+# --------------------------------
+
 classes = [
     "glioma",
     "meningioma",
@@ -12,8 +17,21 @@ classes = [
     "pituitary"
 ]
 
-# Load model
-model = models.resnet18(weights=None)
+# --------------------------------
+# PATHS
+# --------------------------------
+
+BASE_DIR = Path(__file__).resolve().parent
+
+model_path = BASE_DIR / "models" / "tumor_model.pth"
+
+# --------------------------------
+# LOAD MODEL
+# --------------------------------
+
+model = models.resnet18(
+    weights=None
+)
 
 model.fc = nn.Linear(
     model.fc.in_features,
@@ -22,37 +40,49 @@ model.fc = nn.Linear(
 
 model.load_state_dict(
     torch.load(
-        r"C:\Users\masre\OneDrive\Desktop\Mini Project Code\brain_tumor\models\tumor_model.pth",
+        model_path,
         map_location="cpu"
     )
 )
 
 model.eval()
 
-# MRI image path
+# --------------------------------
+# INPUT IMAGE
+# --------------------------------
+
 image_path = input(
     "Enter MRI image path: "
 ).strip('"')
 
-# Image transforms
 transform = transforms.Compose([
-    transforms.Resize((224, 224)),
+    transforms.Resize(
+        (224, 224)
+    ),
     transforms.ToTensor()
 ])
 
-# Load image
 image = Image.open(
     image_path
-).convert("RGB")
+).convert(
+    "RGB"
+)
 
 image = transform(
     image
-).unsqueeze(0)
+).unsqueeze(
+    0
+)
 
-# Prediction
+# --------------------------------
+# PREDICTION
+# --------------------------------
+
 with torch.no_grad():
 
-    output = model(image)
+    output = model(
+        image
+    )
 
     probabilities = torch.softmax(
         output,
@@ -69,5 +99,17 @@ with torch.no_grad():
         * 100
     )
 
-print("\nPrediction:", classes[prediction.item()])
-print(f"Confidence: {confidence:.2f}%")
+# --------------------------------
+# OUTPUT
+# --------------------------------
+
+print()
+
+print(
+    "Prediction:",
+    classes[prediction.item()]
+)
+
+print(
+    f"Confidence: {confidence:.2f}%"
+)

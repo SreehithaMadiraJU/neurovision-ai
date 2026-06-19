@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import streamlit as st
 
 import torch
@@ -21,6 +23,19 @@ st.set_page_config(
 )
 
 # -----------------------------------
+# PATHS
+# -----------------------------------
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+model_path = (
+    BASE_DIR
+    / "Alzhimers"
+    / "models"
+    / "alzhimers_model.pth"
+)
+
+# -----------------------------------
 # CLASSES
 # -----------------------------------
 
@@ -38,7 +53,9 @@ classes = [
 @st.cache_resource
 def load_model():
 
-    model = models.resnet18(weights=None)
+    model = models.resnet18(
+        weights=None
+    )
 
     model.fc = nn.Linear(
         model.fc.in_features,
@@ -47,7 +64,7 @@ def load_model():
 
     model.load_state_dict(
         torch.load(
-            r"C:\Users\masre\OneDrive\Desktop\Mini Project Code\Alzhimers\models\alzhimers_model.pth",
+            model_path,
             map_location="cpu"
         )
     )
@@ -63,7 +80,9 @@ model = load_model()
 # HEADER
 # -----------------------------------
 
-st.title("Alzheimer's Disease Detection")
+st.title(
+    "Alzheimer's Disease Detection"
+)
 
 st.warning(
     """
@@ -92,7 +111,9 @@ disorder that affects memory, thinking ability,
 and behaviour.
 """)
 
-with st.expander("Risk Factors"):
+with st.expander(
+    "Risk Factors"
+):
     st.write("""
 • Aging
 
@@ -105,7 +126,9 @@ with st.expander("Risk Factors"):
 • Diabetes
 """)
 
-with st.expander("Symptoms"):
+with st.expander(
+    "Symptoms"
+):
     st.write("""
 • Memory Loss
 
@@ -120,7 +143,9 @@ with st.expander("Symptoms"):
 • Behavioural Changes
 """)
 
-with st.expander("Stages Detected"):
+with st.expander(
+    "Stages Detected"
+):
     st.write("""
 • Non Demented
 
@@ -159,6 +184,7 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file is None:
+
     st.stop()
 
 # -----------------------------------
@@ -167,16 +193,22 @@ if uploaded_file is None:
 
 image = Image.open(
     uploaded_file
-).convert("RGB")
+).convert(
+    "RGB"
+)
 
 transform = transforms.Compose([
-    transforms.Resize((224, 224)),
+    transforms.Resize(
+        (224, 224)
+    ),
     transforms.ToTensor()
 ])
 
 input_tensor = transform(
     image
-).unsqueeze(0)
+).unsqueeze(
+    0
+)
 
 # -----------------------------------
 # PREDICTION
@@ -188,7 +220,9 @@ with st.spinner(
 
     with torch.no_grad():
 
-        output = model(input_tensor)
+        output = model(
+            input_tensor
+        )
 
         probabilities = torch.softmax(
             output,
@@ -219,10 +253,6 @@ st.progress(
     float(confidence) / 100
 )
 
-# -----------------------------------
-# MODEL INFORMATION
-# -----------------------------------
-
 st.markdown("---")
 
 st.subheader(
@@ -234,13 +264,12 @@ Architecture : ResNet18
 
 Explainability : Grad-CAM
 
-Input Size : 224 x 224 MRI Images
+Input Size : 224 × 224 MRI Images
 
 Dataset : Alzheimer's MRI Dataset (4 Classes)
 
 Framework : PyTorch
 """)
-
 # -----------------------------------
 # HEATMAP
 # -----------------------------------
@@ -311,7 +340,7 @@ with col2:
     )
 
 # -----------------------------------
-# HEATMAP LEGEND
+# HEATMAP INTERPRETATION
 # -----------------------------------
 
 st.markdown("---")
@@ -333,7 +362,7 @@ The highlighted regions indicate the areas that contributed most to the AI model
 """)
 
 # -----------------------------------
-# FINAL DISCLAIMER
+# DISCLAIMER
 # -----------------------------------
 
 st.warning(
@@ -359,22 +388,29 @@ st.caption(
 )
 
 # -----------------------------------
-# BACK BUTTON
+# NAVIGATION
 # -----------------------------------
 
-if st.button(
-    "Back To Model Selection",
-    use_container_width=True
-):
-    st.switch_page(
-        "pages/1_Model_Selection.py"
-    )
 st.markdown("---")
 
-if st.button(
-    "View Project Metrics",
-    use_container_width=True
-):
-    st.switch_page(
-        "pages/4_Project_Metrics.py"
-    )
+col1, col2 = st.columns(2)
+
+with col1:
+
+    if st.button(
+        "Back To Model Selection",
+        use_container_width=True
+    ):
+        st.switch_page(
+            "pages/1_Model_Selection.py"
+        )
+
+with col2:
+
+    if st.button(
+        "View Project Metrics",
+        use_container_width=True
+    ):
+        st.switch_page(
+            "pages/4_Project_Metrics.py"
+        )

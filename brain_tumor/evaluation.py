@@ -16,28 +16,16 @@ from sklearn.metrics import (
 
 def evaluate_model():
 
-    # -----------------------------------
-    # PATHS
-    # -----------------------------------
-
     BASE_DIR = Path(__file__).resolve().parent
 
     test_dir = BASE_DIR / "dataset" / "Testing"
 
     model_path = BASE_DIR / "models" / "tumor_model.pth"
 
-    # -----------------------------------
-    # TRANSFORM
-    # -----------------------------------
-
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor()
     ])
-
-    # -----------------------------------
-    # DATASET
-    # -----------------------------------
 
     test_dataset = datasets.ImageFolder(
         root=test_dir,
@@ -49,10 +37,6 @@ def evaluate_model():
         batch_size=16,
         shuffle=False
     )
-
-    # -----------------------------------
-    # MODEL
-    # -----------------------------------
 
     model = models.resnet18(weights=None)
 
@@ -70,10 +54,6 @@ def evaluate_model():
 
     model.eval()
 
-    # -----------------------------------
-    # PREDICTIONS
-    # -----------------------------------
-
     y_true = []
     y_pred = []
 
@@ -88,17 +68,8 @@ def evaluate_model():
                 1
             )
 
-            y_true.extend(
-                labels.numpy()
-            )
-
-            y_pred.extend(
-                predicted.numpy()
-            )
-
-    # -----------------------------------
-    # METRICS
-    # -----------------------------------
+            y_true.extend(labels.numpy())
+            y_pred.extend(predicted.numpy())
 
     accuracy = accuracy_score(
         y_true,
@@ -140,20 +111,7 @@ if __name__ == "__main__":
 
     metrics = evaluate_model()
 
-    print()
-
-    print(
-        f"Accuracy : {metrics['accuracy']:.2f}%"
-    )
-
-    print(
-        f"Precision : {metrics['precision']:.2f}%"
-    )
-
-    print(
-        f"Recall : {metrics['recall']:.2f}%"
-    )
-
-    print(
-        f"F1 Score : {metrics['f1']:.2f}%"
-    )
+    print(f"Accuracy : {metrics['accuracy']:.2f}%")
+    print(f"Precision : {metrics['precision']:.2f}%")
+    print(f"Recall : {metrics['recall']:.2f}%")
+    print(f"F1 Score : {metrics['f1']:.2f}%")

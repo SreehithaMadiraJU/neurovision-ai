@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -6,10 +8,14 @@ from torchvision import datasets, transforms, models
 from torch.utils.data import DataLoader
 
 # -----------------------------------
-# DATASET PATH
+# PATHS
 # -----------------------------------
 
-train_dir = r"C:\Users\masre\OneDrive\Desktop\Mini Project Code\Alzhimers\alzhimers_dataset\train"
+BASE_DIR = Path(__file__).resolve().parent
+
+train_dir = BASE_DIR / "alzhimers_dataset" / "train"
+
+model_path = BASE_DIR / "models" / "alzhimers_model.pth"
 
 # -----------------------------------
 # IMAGE TRANSFORMS
@@ -89,10 +95,7 @@ for epoch in range(epochs):
 
         outputs = model(images)
 
-        loss = criterion(
-            outputs,
-            labels
-        )
+        loss = criterion(outputs, labels)
 
         loss.backward()
 
@@ -112,7 +115,7 @@ for epoch in range(epochs):
 
 torch.save(
     model.state_dict(),
-    r"C:\Users\masre\OneDrive\Desktop\Mini Project Code\Alzhimers\models\alzhimers_model.pth"
+    model_path
 )
 
 print("Model Saved Successfully!")

@@ -1,14 +1,21 @@
+from pathlib import Path
+
 import torch
 import torch.nn as nn
+
 from torchvision import models, transforms
 from PIL import Image
+
 import cv2
 import numpy as np
 
 from pytorch_grad_cam import GradCAM
 from pytorch_grad_cam.utils.image import show_cam_on_image
 
-# Classes
+# --------------------------------
+# CLASSES
+# --------------------------------
+
 classes = [
     "glioma",
     "meningioma",
@@ -16,8 +23,29 @@ classes = [
     "pituitary"
 ]
 
-# Load model
-model = models.resnet18(weights=None)
+# --------------------------------
+# PATHS
+# --------------------------------
+
+BASE_DIR = Path(__file__).resolve().parent
+
+model_path = BASE_DIR / "models" / "tumor_model.pth"
+
+output_dir = BASE_DIR / "outputs"
+
+output_dir.mkdir(
+    exist_ok=True
+)
+
+heatmap_path = output_dir / "heatmap.jpg"
+
+# --------------------------------
+# LOAD MODEL
+# --------------------------------
+
+model = models.resnet18(
+    weights=None
+)
 
 model.fc = nn.Linear(
     model.fc.in_features,
@@ -26,22 +54,26 @@ model.fc = nn.Linear(
 
 model.load_state_dict(
     torch.load(
-        r"C:\Users\masre\OneDrive\Desktop\Mini Project Code\brain_tumor\models\tumor_model.pth",
+        model_path,
         map_location="cpu"
     )
 )
 
 model.eval()
 
-# MRI image path
+# --------------------------------
+# INPUT IMAGE
+# --------------------------------
+
 image_path = input(
     "Enter MRI image path: "
 ).strip('"')
 
-# Load image
 rgb_img = Image.open(
     image_path
-).convert("RGB")
+).convert(
+    "RGB"
+)
 
 rgb_img = rgb_img.resize(
     (224, 224)
@@ -59,7 +91,10 @@ input_tensor = transform(
     rgb_img
 ).unsqueeze(0)
 
-# Last convolution layer
+# --------------------------------
+# GRAD-CAM
+# --------------------------------
+
 target_layers = [
     model.layer4[-1]
 ]
@@ -79,13 +114,27 @@ visualization = show_cam_on_image(
     use_rgb=True
 )
 
-# Save heatmap
+# --------------------------------
+# SAVE HEATMAP
+# --------------------------------
+
 cv2.imwrite(
-    r"C:\Users\masre\OneDrive\Desktop\Mini Project Code\brain_tumor\outputs\heatmap.jpg",
+    str(
+        heatmap_path
+    ),
     cv2.cvtColor(
         visualization,
         cv2.COLOR_RGB2BGR
     )
 )
 
-print("Heatmap saved!")
+print()
+
+print(
+    "Heatmap saved successfully!"
+)
+
+print(
+    "Location:",
+    heatmap_path
+)

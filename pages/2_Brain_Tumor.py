@@ -59,6 +59,7 @@ def load_model():
 
     return model
 
+
 model = load_model()
 
 # -----------------------------------
@@ -135,6 +136,10 @@ with st.expander("Tumor Types Detected"):
 
 st.markdown("---")
 
+# -----------------------------------
+# CONSENT
+# -----------------------------------
+
 consent = st.checkbox(
     "I understand this is an educational project and not a medical diagnosis."
 )
@@ -147,6 +152,10 @@ if not consent:
 
     st.stop()
 
+# -----------------------------------
+# FILE UPLOAD
+# -----------------------------------
+
 uploaded_file = st.file_uploader(
     "Upload MRI Scan",
     type=["jpg", "jpeg", "png"]
@@ -154,7 +163,8 @@ uploaded_file = st.file_uploader(
 
 if uploaded_file is None:
     st.stop()
-    # -----------------------------------
+
+# -----------------------------------
 # IMAGE
 # -----------------------------------
 
@@ -175,24 +185,28 @@ input_tensor = transform(
 # PREDICTION
 # -----------------------------------
 
-with torch.no_grad():
+with st.spinner(
+    "Analyzing MRI..."
+):
 
-    output = model(input_tensor)
+    with torch.no_grad():
 
-    probabilities = torch.softmax(
-        output,
-        dim=1
-    )
+        output = model(input_tensor)
 
-    prediction = torch.argmax(
-        probabilities,
-        dim=1
-    )
+        probabilities = torch.softmax(
+            output,
+            dim=1
+        )
 
-    confidence = (
-        probabilities[0][prediction.item()]
-        * 100
-    )
+        prediction = torch.argmax(
+            probabilities,
+            dim=1
+        )
+
+        confidence = (
+            probabilities[0][prediction.item()]
+            * 100
+        )
 
 predicted_class = classes[
     prediction.item()
@@ -213,34 +227,64 @@ st.progress(
 )
 
 # -----------------------------------
+# MODEL INFORMATION
+# -----------------------------------
+
+st.markdown("---")
+
+st.subheader(
+    "Model Information"
+)
+
+st.write("""
+Architecture : ResNet18
+
+Explainability : Grad-CAM
+
+Input Size : 224 × 224 MRI Images
+
+Dataset : Brain Tumor MRI Dataset
+
+Framework : PyTorch
+""")
+
+# -----------------------------------
 # HEATMAP
 # -----------------------------------
 
-rgb_img = image.resize(
-    (224, 224)
-)
+with st.spinner(
+    "Generating Grad-CAM heatmap..."
+):
 
-img_np = np.array(
-    rgb_img
-) / 255.0
+    rgb_img = image.resize(
+        (224, 224)
+    )
 
-target_layers = [
-    model.layer4[-1]
-]
+    img_np = np.array(
+        rgb_img
+    ) / 255.0
 
-cam = GradCAM(
-    model=model,
-    target_layers=target_layers
-)
+    target_layers = [
+        model.layer4[-1]
+    ]
 
-grayscale_cam = cam(
-    input_tensor=input_tensor
-)[0]
+    cam = GradCAM(
+        model=model,
+        target_layers=target_layers
+    )
 
-visualization = show_cam_on_image(
-    img_np,
-    grayscale_cam,
-    use_rgb=True
+    grayscale_cam = cam(
+        input_tensor=input_tensor
+    )[0]
+
+    visualization = show_cam_on_image(
+        img_np,
+        grayscale_cam,
+        use_rgb=True
+    )
+
+st.success(
+    "Heatmap generated successfully."
 )
 
 # -----------------------------------
@@ -295,6 +339,10 @@ st.markdown("""
 The highlighted regions indicate the areas that contributed most to the AI model's prediction.
 """)
 
+# -----------------------------------
+# FINAL DISCLAIMER
+# -----------------------------------
+
 st.warning(
     """
 Important:
@@ -307,7 +355,19 @@ neurosurgeon, or neuro-oncologist.
 """
 )
 
+# -----------------------------------
+# FOOTER
+# -----------------------------------
+
 st.markdown("---")
+
+st.caption(
+    "NeuroVision AI | Academic Project | MRI-Based Brain Disease Detection using Deep Learning and Explainable AI"
+)
+
+# -----------------------------------
+# BACK BUTTON
+# -----------------------------------
 
 if st.button(
     "Back To Model Selection",
@@ -315,4 +375,14 @@ if st.button(
 ):
     st.switch_page(
         "pages/1_Model_Selection.py"
+    )
+
+    st.markdown("---")
+
+if st.button(
+    "View Project Metrics",
+    use_container_width=True
+):
+    st.switch_page(
+        "pages/4_Project_Metrics.py"
     )

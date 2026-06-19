@@ -5,22 +5,32 @@ import torch.optim as optim
 from torchvision import datasets, transforms, models
 from torch.utils.data import DataLoader
 
-# Dataset paths
-train_dir = r"C:\Users\masre\OneDrive\Desktop\Mini Project Code\Alzhimers\dataset\train"
+# -----------------------------------
+# DATASET PATH
+# -----------------------------------
 
-# Image transforms
+train_dir = r"C:\Users\masre\OneDrive\Desktop\Mini Project Code\Alzhimers\alzhimers_dataset\train"
+
+# -----------------------------------
+# IMAGE TRANSFORMS
+# -----------------------------------
+
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomRotation(10),
     transforms.ToTensor()
 ])
 
-# Dataset
+# -----------------------------------
+# LOAD DATASET
+# -----------------------------------
+
 train_dataset = datasets.ImageFolder(
     train_dir,
     transform=transform
 )
 
-# DataLoader
 train_loader = DataLoader(
     train_dataset,
     batch_size=16,
@@ -30,19 +40,26 @@ train_loader = DataLoader(
 print("Dataset Loaded!")
 print("Classes:", train_dataset.classes)
 
-# ResNet18
+# -----------------------------------
+# MODEL
+# -----------------------------------
+
 model = models.resnet18(
     weights="DEFAULT"
 )
 
-# 4 classes
 model.fc = nn.Linear(
     model.fc.in_features,
     4
 )
 
 device = torch.device("cpu")
+
 model = model.to(device)
+
+# -----------------------------------
+# LOSS FUNCTION
+# -----------------------------------
 
 criterion = nn.CrossEntropyLoss()
 
@@ -51,9 +68,13 @@ optimizer = optim.Adam(
     lr=0.001
 )
 
-epochs = 1
+epochs = 5
 
 print("Training Started...")
+
+# -----------------------------------
+# TRAINING LOOP
+# -----------------------------------
 
 for epoch in range(epochs):
 
@@ -80,11 +101,15 @@ for epoch in range(epochs):
         if batch_idx % 20 == 0:
 
             print(
+                f"Epoch {epoch+1}/{epochs} "
                 f"Batch {batch_idx}/{len(train_loader)} "
                 f"Loss: {loss.item():.4f}"
             )
 
-# Save model
+# -----------------------------------
+# SAVE MODEL
+# -----------------------------------
+
 torch.save(
     model.state_dict(),
     r"C:\Users\masre\OneDrive\Desktop\Mini Project Code\Alzhimers\models\alzhimers_model.pth"

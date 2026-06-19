@@ -4,21 +4,25 @@ import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
 
-import cv2
 import numpy as np
-
 from pytorch_grad_cam import GradCAM
 from pytorch_grad_cam.utils.image import show_cam_on_image
 
-# Classes
+# --------------------------------
+# CLASSES
+# --------------------------------
+
 classes = [
-    "Mild Impairment",
-    "Moderate Impairment",
-    "No Impairment",
-    "Very Mild Impairment"
+    "Mild Demented",
+    "Moderate Demented",
+    "Non Demented",
+    "Very Mild Demented"
 ]
 
-# Load model
+# --------------------------------
+# LOAD MODEL
+# --------------------------------
+
 model = models.resnet18(weights=None)
 
 model.fc = nn.Linear(
@@ -35,33 +39,72 @@ model.load_state_dict(
 
 model.eval()
 
-# MRI image path
+# --------------------------------
+# INPUT IMAGE
+# --------------------------------
+
 image_path = input(
     "Enter MRI image path: "
 ).strip('"')
 
-# Load image
-rgb_img = Image.open(
+image = Image.open(
     image_path
 ).convert("RGB")
 
-rgb_img = rgb_img.resize(
-    (224, 224)
+transform = transforms.Compose([
+    transforms.Resize((224,224)),
+    transforms.ToTensor()
+])
+
+input_tensor = transform(
+    image
+).unsqueeze(0)
+
+# --------------------------------
+# PREDICTION
+# --------------------------------
+
+with torch.no_grad():
+
+    output = model(input_tensor)
+
+    probabilities = torch.softmax(
+        output,
+        dim=1
+    )
+
+    prediction = torch.argmax(
+        probabilities,
+        dim=1
+    )
+
+    confidence = (
+        probabilities[0][prediction.item()]
+        * 100
+    )
+
+print()
+print(
+    "Prediction:",
+    classes[prediction.item()]
+)
+
+print(
+    f"Confidence: {confidence:.2f}%"
+)
+
+# --------------------------------
+# HEATMAP
+# --------------------------------
+
+rgb_img = image.resize(
+    (224,224)
 )
 
 img_np = np.array(
     rgb_img
 ) / 255.0
 
-transform = transforms.Compose([
-    transforms.ToTensor()
-])
-
-input_tensor = transform(
-    rgb_img
-).unsqueeze(0)
-
-# Grad-CAM
 target_layers = [
     model.layer4[-1]
 ]
@@ -81,13 +124,33 @@ visualization = show_cam_on_image(
     use_rgb=True
 )
 
-# Save heatmap
-cv2.imwrite(
-    r"C:\Users\masre\OneDrive\Desktop\Mini Project Code\Alzhimers\outputs\heatmap_alzhimers.jpg",
-    cv2.cvtColor(
-        visualization,
-        cv2.COLOR_RGB2BGR
-    )
+# --------------------------------
+# SAVE HEATMAP
+# --------------------------------
+
+heatmap_image = Image.fromarray(
+    visualization
 )
 
-print("Heatmap saved!")
+save_path = (
+    r"C:\Users\masre\OneDrive\Desktop\Mini Project Code\Alzhimers\outputs\outputs.jpg"
+)
+
+heatmap_image.save(
+    save_path
+)
+
+print()
+print("Heatmap saved successfully!")
+
+print(
+    "Location:",
+    save_path
+)
+
+print()
+print("Heatmap Interpretation:")
+print("🔴 Red    -> Very High Attention")
+print("🟡 Yellow -> High Attention")
+print("🟢 Green  -> Moderate Attention")
+print("🔵 Blue   -> Low Attention")

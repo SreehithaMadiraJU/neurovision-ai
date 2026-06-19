@@ -4,15 +4,13 @@ import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
 
-# Classes
 classes = [
-    "Mild Impairment",
-    "Moderate Impairment",
-    "No Impairment",
-    "Very Mild Impairment"
+    "Mild Demented",
+    "Moderate Demented",
+    "Non Demented",
+    "Very Mild Demented"
 ]
 
-# Load model
 model = models.resnet18(weights=None)
 
 model.fc = nn.Linear(
@@ -29,18 +27,15 @@ model.load_state_dict(
 
 model.eval()
 
-# MRI image path
 image_path = input(
     "Enter MRI image path: "
 ).strip('"')
 
-# Image transforms
 transform = transforms.Compose([
-    transforms.Resize((224, 224)),
+    transforms.Resize((224,224)),
     transforms.ToTensor()
 ])
 
-# Load image
 image = Image.open(
     image_path
 ).convert("RGB")
@@ -49,7 +44,6 @@ image = transform(
     image
 ).unsqueeze(0)
 
-# Prediction
 with torch.no_grad():
 
     output = model(image)
@@ -69,5 +63,13 @@ with torch.no_grad():
         * 100
     )
 
-print("\nPrediction:", classes[prediction.item()])
-print(f"Confidence: {confidence:.2f}%")
+print()
+
+print(
+    "Prediction:",
+    classes[prediction.item()]
+)
+
+print(
+    f"Confidence: {confidence:.2f}%"
+)

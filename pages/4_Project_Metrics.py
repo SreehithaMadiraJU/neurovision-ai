@@ -1,4 +1,5 @@
 import streamlit as st
+from concurrent.futures import ThreadPoolExecutor
 
 from brain_tumor.evaluation import evaluate_model as evaluate_brain
 from Alzhimers.evaluation import evaluate_model as evaluate_alzheimer
@@ -19,14 +20,32 @@ st.set_page_config(
 @st.cache_data
 def load_metrics():
 
-    brain_metrics = evaluate_brain()
+    with ThreadPoolExecutor() as executor:
 
-    alzheimer_metrics = evaluate_alzheimer()
+        brain_future = executor.submit(
+            evaluate_brain
+        )
+
+        alzheimer_future = executor.submit(
+            evaluate_alzheimer
+        )
+
+        brain_metrics = brain_future.result()
+
+        alzheimer_metrics = alzheimer_future.result()
 
     return brain_metrics, alzheimer_metrics
 
 
-brain_metrics, alzheimer_metrics = load_metrics()
+# -----------------------------------
+# LOAD METRICS
+# -----------------------------------
+
+with st.spinner(
+    "Calculating metrics, please wait..."
+):
+
+    brain_metrics, alzheimer_metrics = load_metrics()
 
 # -----------------------------------
 # HEADER

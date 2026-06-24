@@ -14,24 +14,45 @@ from sklearn.metrics import (
 )
 
 
+# -----------------------------------
+# MODEL LOADING
+# -----------------------------------
+
+BASE_DIR = Path(__file__).resolve().parent
+
+model_path = (
+    BASE_DIR
+    / "models"
+    / "tumor_model.pth"
+)
+
+model = models.resnet18(weights=None)
+
+model.fc = nn.Linear(
+    model.fc.in_features,
+    4
+)
+
+model.load_state_dict(
+    torch.load(
+        model_path,
+        map_location="cpu"
+    )
+)
+
+model.eval()
+
+
 def evaluate_model():
 
     # -----------------------------------
     # PATHS
     # -----------------------------------
 
-    BASE_DIR = Path(__file__).resolve().parent
-
     test_dir = (
         BASE_DIR
         / "brain-tumor-mri-dataset"
         / "Testing"
-    )
-
-    model_path = (
-        BASE_DIR
-        / "models"
-        / "tumor_model.pth"
     )
 
     # -----------------------------------
@@ -54,30 +75,11 @@ def evaluate_model():
 
     test_loader = DataLoader(
         test_dataset,
-        batch_size=128,      # Increased batch size
+        batch_size=128,
         shuffle=False,
-        num_workers=4        # Faster loading
+        num_workers=4,
+        pin_memory=True
     )
-
-    # -----------------------------------
-    # MODEL
-    # -----------------------------------
-
-    model = models.resnet18(weights=None)
-
-    model.fc = nn.Linear(
-        model.fc.in_features,
-        4
-    )
-
-    model.load_state_dict(
-        torch.load(
-            model_path,
-            map_location="cpu"
-        )
-    )
-
-    model.eval()
 
     # -----------------------------------
     # PREDICTIONS
@@ -92,7 +94,9 @@ def evaluate_model():
 
             outputs = model(images)
 
-            predicted = outputs.argmax(dim=1)
+            predicted = outputs.argmax(
+                dim=1
+            )
 
             y_true.extend(
                 labels.numpy()
@@ -106,35 +110,39 @@ def evaluate_model():
     # METRICS
     # -----------------------------------
 
+    accuracy = accuracy_score(
+        y_true,
+        y_pred
+    )
+
+    precision = precision_score(
+        y_true,
+        y_pred,
+        average="weighted",
+        zero_division=0
+    )
+
+    recall = recall_score(
+        y_true,
+        y_pred,
+        average="weighted"
+    )
+
+    f1 = f1_score(
+        y_true,
+        y_pred,
+        average="weighted"
+    )
+
     return {
 
-        "accuracy":
-        accuracy_score(
-            y_true,
-            y_pred
-        ) * 100,
+        "accuracy": accuracy * 100,
 
-        "precision":
-        precision_score(
-            y_true,
-            y_pred,
-            average="weighted",
-            zero_division=0
-        ) * 100,
+        "precision": precision * 100,
 
-        "recall":
-        recall_score(
-            y_true,
-            y_pred,
-            average="weighted"
-        ) * 100,
+        "recall": recall * 100,
 
-        "f1":
-        f1_score(
-            y_true,
-            y_pred,
-            average="weighted"
-        ) * 100
+        "f1": f1 * 100
 
     }
 

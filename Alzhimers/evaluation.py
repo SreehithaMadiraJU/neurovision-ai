@@ -14,17 +14,46 @@ from sklearn.metrics import (
 )
 
 
+# -----------------------------------
+# MODEL LOADING
+# -----------------------------------
+
+BASE_DIR = Path(__file__).resolve().parent
+
+model_path = (
+    BASE_DIR
+    / "models"
+    / "tumor_model.pth"
+)
+
+model = models.resnet18(weights=None)
+
+model.fc = nn.Linear(
+    model.fc.in_features,
+    4
+)
+
+model.load_state_dict(
+    torch.load(
+        model_path,
+        map_location="cpu"
+    )
+)
+
+model.eval()
+
+
 def evaluate_model():
 
     # -----------------------------------
     # PATHS
     # -----------------------------------
 
-    BASE_DIR = Path(__file__).resolve().parent
-
-    test_dir = BASE_DIR / "alzhimers_dataset" / "test"
-
-    model_path = BASE_DIR / "models" / "alzhimers_model.pth"
+    test_dir = (
+        BASE_DIR
+        / "brain-tumor-mri-dataset"
+        / "Testing"
+    )
 
     # -----------------------------------
     # TRANSFORM
@@ -46,29 +75,11 @@ def evaluate_model():
 
     test_loader = DataLoader(
         test_dataset,
-        batch_size=16,
-        shuffle=False
+        batch_size=128,
+        shuffle=False,
+        num_workers=4,
+        pin_memory=True
     )
-
-    # -----------------------------------
-    # MODEL
-    # -----------------------------------
-
-    model = models.resnet18(weights=None)
-
-    model.fc = nn.Linear(
-        model.fc.in_features,
-        4
-    )
-
-    model.load_state_dict(
-        torch.load(
-            model_path,
-            map_location="cpu"
-        )
-    )
-
-    model.eval()
 
     # -----------------------------------
     # PREDICTIONS
@@ -83,9 +94,8 @@ def evaluate_model():
 
             outputs = model(images)
 
-            _, predicted = torch.max(
-                outputs,
-                1
+            predicted = outputs.argmax(
+                dim=1
             )
 
             y_true.extend(
@@ -108,7 +118,8 @@ def evaluate_model():
     precision = precision_score(
         y_true,
         y_pred,
-        average="weighted"
+        average="weighted",
+        zero_division=0
     )
 
     recall = recall_score(
@@ -140,7 +151,18 @@ if __name__ == "__main__":
 
     metrics = evaluate_model()
 
-    print(f"Accuracy : {metrics['accuracy']:.2f}%")
-    print(f"Precision : {metrics['precision']:.2f}%")
-    print(f"Recall : {metrics['recall']:.2f}%")
-    print(f"F1 Score : {metrics['f1']:.2f}%")
+    print(
+        f"Accuracy : {metrics['accuracy']:.2f}%"
+    )
+
+    print(
+        f"Precision : {metrics['precision']:.2f}%"
+    )
+
+    print(
+        f"Recall : {metrics['recall']:.2f}%"
+    )
+
+    print(
+        f"F1 Score : {metrics['f1']:.2f}%"
+    )

@@ -54,8 +54,9 @@ def evaluate_model():
 
     test_loader = DataLoader(
         test_dataset,
-        batch_size=16,
-        shuffle=False
+        batch_size=128,      # Increased batch size
+        shuffle=False,
+        num_workers=4        # Faster loading
     )
 
     # -----------------------------------
@@ -91,10 +92,7 @@ def evaluate_model():
 
             outputs = model(images)
 
-            _, predicted = torch.max(
-                outputs,
-                1
-            )
+            predicted = outputs.argmax(dim=1)
 
             y_true.extend(
                 labels.numpy()
@@ -108,38 +106,35 @@ def evaluate_model():
     # METRICS
     # -----------------------------------
 
-    accuracy = accuracy_score(
-        y_true,
-        y_pred
-    )
-
-    precision = precision_score(
-        y_true,
-        y_pred,
-        average="weighted"
-    )
-
-    recall = recall_score(
-        y_true,
-        y_pred,
-        average="weighted"
-    )
-
-    f1 = f1_score(
-        y_true,
-        y_pred,
-        average="weighted"
-    )
-
     return {
 
-        "accuracy": accuracy * 100,
+        "accuracy":
+        accuracy_score(
+            y_true,
+            y_pred
+        ) * 100,
 
-        "precision": precision * 100,
+        "precision":
+        precision_score(
+            y_true,
+            y_pred,
+            average="weighted",
+            zero_division=0
+        ) * 100,
 
-        "recall": recall * 100,
+        "recall":
+        recall_score(
+            y_true,
+            y_pred,
+            average="weighted"
+        ) * 100,
 
-        "f1": f1 * 100
+        "f1":
+        f1_score(
+            y_true,
+            y_pred,
+            average="weighted"
+        ) * 100
 
     }
 

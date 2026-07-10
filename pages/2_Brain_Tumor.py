@@ -55,10 +55,6 @@ labels = {
 
 @st.cache_resource
 def load_model():
-    import hashlib
-
-with open(MODEL_PATH, "rb") as f:
-    st.write("MD5:", hashlib.md5(f.read()).hexdigest())
 
     model = models.resnet18(
         weights=None
@@ -79,8 +75,7 @@ with open(MODEL_PATH, "rb") as f:
     model.eval()
 
     return model
-
-
+    
 model = load_model()
 
 # -----------------------------------

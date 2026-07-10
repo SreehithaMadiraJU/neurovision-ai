@@ -28,7 +28,7 @@ st.set_page_config(
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-model_path = (
+MODEL_PATH = (
     BASE_DIR
     / "Alzhimers"
     / "models"
@@ -53,9 +53,7 @@ classes = [
 @st.cache_resource
 def load_model():
 
-    model = models.resnet18(
-        weights=None
-    )
+    model = models.resnet18(weights=None)
 
     model.fc = nn.Linear(
         model.fc.in_features,
@@ -64,8 +62,8 @@ def load_model():
 
     model.load_state_dict(
         torch.load(
-            model_path,
-            map_location="cpu"
+            MODEL_PATH,
+            map_location=torch.device("cpu")
         )
     )
 
@@ -80,9 +78,7 @@ model = load_model()
 # HEADER
 # -----------------------------------
 
-st.title(
-    "Alzheimer's Disease Detection"
-)
+st.title("Alzheimer's Disease Detection")
 
 st.warning(
     """
@@ -111,9 +107,7 @@ disorder that affects memory, thinking ability,
 and behaviour.
 """)
 
-with st.expander(
-    "Risk Factors"
-):
+with st.expander("Risk Factors"):
     st.write("""
 • Aging
 
@@ -126,9 +120,7 @@ with st.expander(
 • Diabetes
 """)
 
-with st.expander(
-    "Symptoms"
-):
+with st.expander("Symptoms"):
     st.write("""
 • Memory Loss
 
@@ -143,9 +135,7 @@ with st.expander(
 • Behavioural Changes
 """)
 
-with st.expander(
-    "Stages Detected"
-):
+with st.expander("Stages Detected"):
     st.write("""
 • Non Demented
 
@@ -184,7 +174,6 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file is None:
-
     st.stop()
 
 # -----------------------------------
@@ -193,23 +182,16 @@ if uploaded_file is None:
 
 image = Image.open(
     uploaded_file
-).convert(
-    "RGB"
-)
+).convert("RGB")
 
 transform = transforms.Compose([
-    transforms.Resize(
-        (224, 224)
-    ),
+    transforms.Resize((224, 224)),
     transforms.ToTensor()
 ])
 
 input_tensor = transform(
     image
-).unsqueeze(
-    0
-)
-
+).unsqueeze(0)
 # -----------------------------------
 # PREDICTION
 # -----------------------------------
@@ -220,9 +202,7 @@ with st.spinner(
 
     with torch.no_grad():
 
-        output = model(
-            input_tensor
-        )
+        output = model(input_tensor)
 
         probabilities = torch.softmax(
             output,
@@ -239,10 +219,14 @@ with st.spinner(
             * 100
         )
 
+predicted_class = classes[
+    prediction.item()
+]
+
 st.markdown("---")
 
 st.success(
-    f"Prediction: {classes[prediction.item()]}"
+    f"Prediction: {predicted_class}"
 )
 
 st.info(
@@ -252,6 +236,10 @@ st.info(
 st.progress(
     float(confidence) / 100
 )
+
+# -----------------------------------
+# MODEL INFORMATION
+# -----------------------------------
 
 st.markdown("---")
 
@@ -270,12 +258,13 @@ Dataset : Alzheimer's MRI Dataset (4 Classes)
 
 Framework : PyTorch
 """)
+
 # -----------------------------------
 # HEATMAP
 # -----------------------------------
 
 with st.spinner(
-    "Generating Grad-CAM heatmap..."
+    "Generating Grad-CAM Heatmap..."
 ):
 
     rgb_img = image.resize(
@@ -338,9 +327,8 @@ with col2:
         visualization,
         use_container_width=True
     )
-
-# -----------------------------------
-# HEATMAP INTERPRETATION
+    # -----------------------------------
+# HEATMAP LEGEND
 # -----------------------------------
 
 st.markdown("---")
@@ -362,7 +350,7 @@ The highlighted regions indicate the areas that contributed most to the AI model
 """)
 
 # -----------------------------------
-# DISCLAIMER
+# FINAL DISCLAIMER
 # -----------------------------------
 
 st.warning(
@@ -396,7 +384,6 @@ st.markdown("---")
 col1, col2 = st.columns(2)
 
 with col1:
-
     if st.button(
         "Back To Model Selection",
         use_container_width=True
@@ -406,7 +393,6 @@ with col1:
         )
 
 with col2:
-
     if st.button(
         "View Project Metrics",
         use_container_width=True

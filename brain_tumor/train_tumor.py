@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -5,22 +7,37 @@ import torch.optim as optim
 from torchvision import datasets, transforms, models
 from torch.utils.data import DataLoader
 
-# Dataset path
-train_dir = r"C:\Users\masre\OneDrive\Desktop\Mini Project Code\brain_tumor\brain-tumor-mri-dataset\Training"
+# --------------------------------
+# PATHS
+# --------------------------------
 
-# Image transforms
+BASE_DIR = Path(__file__).resolve().parent
+
+train_dir = BASE_DIR / "brain-tumor-mri-dataset" / "Training"
+
+model_dir = BASE_DIR / "models"
+model_dir.mkdir(exist_ok=True)
+
+model_path = model_dir / "tumor_model.pth"
+
+# --------------------------------
+# IMAGE TRANSFORMS
+# --------------------------------
+
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor()
 ])
 
-# Dataset
+# --------------------------------
+# DATASET
+# --------------------------------
+
 train_dataset = datasets.ImageFolder(
     train_dir,
     transform=transform
 )
 
-# DataLoader
 train_loader = DataLoader(
     train_dataset,
     batch_size=16,
@@ -30,19 +47,26 @@ train_loader = DataLoader(
 print("Dataset Loaded!")
 print("Classes:", train_dataset.classes)
 
-# Load ResNet18
+# --------------------------------
+# MODEL
+# --------------------------------
+
 model = models.resnet18(
     weights="DEFAULT"
 )
 
-# Modify final layer
 model.fc = nn.Linear(
     model.fc.in_features,
     4
 )
 
 device = torch.device("cpu")
+
 model = model.to(device)
+
+# --------------------------------
+# LOSS FUNCTION
+# --------------------------------
 
 criterion = nn.CrossEntropyLoss()
 
@@ -54,6 +78,10 @@ optimizer = optim.Adam(
 epochs = 1
 
 print("Training Started...")
+
+# --------------------------------
+# TRAINING LOOP
+# --------------------------------
 
 for epoch in range(epochs):
 
@@ -84,10 +112,23 @@ for epoch in range(epochs):
                 f"Loss: {loss.item():.4f}"
             )
 
-# Save model
+# --------------------------------
+# SAVE MODEL
+# --------------------------------
+
 torch.save(
     model.state_dict(),
-    r"C:\Users\masre\OneDrive\Desktop\Mini Project Code\brain_tumor\models\tumor_model.pth"
+    model_path
 )
 
-print("Model Saved Successfully!")
+print()
+
+print(
+    "Model Saved Successfully!"
+)
+
+print(
+    "Location:",
+    model_path
+)
+

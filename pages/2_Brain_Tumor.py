@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import streamlit as st
 
 import torch
@@ -18,6 +20,22 @@ from pytorch_grad_cam.utils.image import show_cam_on_image
 st.set_page_config(
     page_title="Brain Tumor Detection",
     layout="wide"
+)
+
+# -----------------------------------
+# PATHS
+# -----------------------------------
+
+# BASE_DIR resolves to the repo root regardless of OS or machine,
+# so this works identically on your local machine and on Streamlit Cloud.
+# .parent.parent because this file lives at: repo-root/pages/this_file.py
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+MODEL_PATH = (
+    BASE_DIR
+    / "brain_tumor"
+    / "models"
+    / "tumor_model.pth"
 )
 
 # -----------------------------------
@@ -50,7 +68,7 @@ def load_model():
 
     model.load_state_dict(
         torch.load(
-            r"C:\Users\masre\OneDrive\Desktop\Mini Project Code\brain_tumor\models\tumor_model.pth",
+            MODEL_PATH,
             map_location="cpu"
         )
     )
@@ -377,7 +395,7 @@ if st.button(
         "pages/1_Model_Selection.py"
     )
 
-    st.markdown("---")
+st.markdown("---")
 
 if st.button(
     "View Project Metrics",

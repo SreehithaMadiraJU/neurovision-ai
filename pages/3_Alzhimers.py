@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import streamlit as st
 
 import torch
@@ -18,6 +20,19 @@ from pytorch_grad_cam.utils.image import show_cam_on_image
 st.set_page_config(
     page_title="Alzheimer's Disease Detection",
     layout="wide"
+)
+
+# -----------------------------------
+# PATHS
+# -----------------------------------
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+MODEL_PATH = (
+    BASE_DIR
+    / "Alzhimers"
+    / "models"
+    / "alzhimers_model.pth"
 )
 
 # -----------------------------------
@@ -47,8 +62,8 @@ def load_model():
 
     model.load_state_dict(
         torch.load(
-            r"C:\Users\masre\OneDrive\Desktop\Mini Project Code\Alzhimers\models\alzhimers_model.pth",
-            map_location="cpu"
+            MODEL_PATH,
+            map_location=torch.device("cpu")
         )
     )
 
@@ -177,7 +192,6 @@ transform = transforms.Compose([
 input_tensor = transform(
     image
 ).unsqueeze(0)
-
 # -----------------------------------
 # PREDICTION
 # -----------------------------------
@@ -205,10 +219,14 @@ with st.spinner(
             * 100
         )
 
+predicted_class = classes[
+    prediction.item()
+]
+
 st.markdown("---")
 
 st.success(
-    f"Prediction: {classes[prediction.item()]}"
+    f"Prediction: {predicted_class}"
 )
 
 st.info(
@@ -234,7 +252,7 @@ Architecture : ResNet18
 
 Explainability : Grad-CAM
 
-Input Size : 224 x 224 MRI Images
+Input Size : 224 × 224 MRI Images
 
 Dataset : Alzheimer's MRI Dataset (4 Classes)
 
@@ -246,7 +264,7 @@ Framework : PyTorch
 # -----------------------------------
 
 with st.spinner(
-    "Generating Grad-CAM heatmap..."
+    "Generating Grad-CAM Heatmap..."
 ):
 
     rgb_img = image.resize(
@@ -309,8 +327,7 @@ with col2:
         visualization,
         use_container_width=True
     )
-
-# -----------------------------------
+    # -----------------------------------
 # HEATMAP LEGEND
 # -----------------------------------
 
@@ -359,22 +376,27 @@ st.caption(
 )
 
 # -----------------------------------
-# BACK BUTTON
+# NAVIGATION
 # -----------------------------------
 
-if st.button(
-    "Back To Model Selection",
-    use_container_width=True
-):
-    st.switch_page(
-        "pages/1_Model_Selection.py"
-    )
 st.markdown("---")
 
-if st.button(
-    "View Project Metrics",
-    use_container_width=True
-):
-    st.switch_page(
-        "pages/4_Project_Metrics.py"
-    )
+col1, col2 = st.columns(2)
+
+with col1:
+    if st.button(
+        "Back To Model Selection",
+        use_container_width=True
+    ):
+        st.switch_page(
+            "pages/1_Model_Selection.py"
+        )
+
+with col2:
+    if st.button(
+        "View Project Metrics",
+        use_container_width=True
+    ):
+        st.switch_page(
+            "pages/4_Project_Metrics.py"
+        )

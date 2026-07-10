@@ -40,7 +40,7 @@ def evaluate_model():
     # -----------------------------------
 
     test_dataset = datasets.ImageFolder(
-        test_dir,
+        root=test_dir,
         transform=transform
     )
 
@@ -136,28 +136,11 @@ def evaluate_model():
     }
 
 
-# -----------------------------------
-# STANDALONE TEST
-# -----------------------------------
-
 if __name__ == "__main__":
 
     metrics = evaluate_model()
 
-    print()
-
-    print(
-        f"Accuracy : {metrics['accuracy']:.2f}%"
-    )
-
-    print(
-        f"Precision : {metrics['precision']:.2f}%"
-    )
-
-    print(
-        f"Recall : {metrics['recall']:.2f}%"
-    )
-
-    print(
-        f"F1 Score : {metrics['f1']:.2f}%"
-    )
+    print(f"Accuracy : {metrics['accuracy']:.2f}%")
+    print(f"Precision : {metrics['precision']:.2f}%")
+    print(f"Recall : {metrics['recall']:.2f}%")
+    print(f"F1 Score : {metrics['f1']:.2f}%")

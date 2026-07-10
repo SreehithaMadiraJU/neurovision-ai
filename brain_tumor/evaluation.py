@@ -22,9 +22,17 @@ def evaluate_model():
 
     BASE_DIR = Path(__file__).resolve().parent
 
-    test_dir = BASE_DIR / "dataset" / "test"
+    test_dir = (
+        BASE_DIR
+        / "brain-tumor-mri-dataset"
+        / "Testing"
+    )
 
-    model_path = BASE_DIR / "models" / "tumor_model.pth"
+    model_path = (
+        BASE_DIR
+        / "models"
+        / "tumor_model.pth"
+    )
 
     # -----------------------------------
     # TRANSFORM
@@ -40,7 +48,7 @@ def evaluate_model():
     # -----------------------------------
 
     test_dataset = datasets.ImageFolder(
-        test_dir,
+        root=test_dir,
         transform=transform
     )
 
@@ -140,8 +148,6 @@ if __name__ == "__main__":
 
     metrics = evaluate_model()
 
-    print()
-
     print(
         f"Accuracy : {metrics['accuracy']:.2f}%"
     )
@@ -157,3 +163,4 @@ if __name__ == "__main__":
     print(
         f"F1 Score : {metrics['f1']:.2f}%"
     )
+

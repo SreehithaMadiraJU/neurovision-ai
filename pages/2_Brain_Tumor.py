@@ -26,6 +26,9 @@ st.set_page_config(
 # PATHS
 # -----------------------------------
 
+# BASE_DIR resolves to the repo root regardless of OS or machine,
+# so this works identically on your local machine and on Streamlit Cloud.
+# .parent.parent because this file lives at: repo-root/pages/this_file.py
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 MODEL_PATH = (
@@ -56,9 +59,7 @@ labels = {
 @st.cache_resource
 def load_model():
 
-    model = models.resnet18(
-        weights=None
-    )
+    model = models.resnet18(weights=None)
 
     model.fc = nn.Linear(
         model.fc.in_features,
@@ -75,23 +76,10 @@ def load_model():
     model.eval()
 
     return model
-    
+
+
 model = load_model()
 
-# -----------------------------------
-
-st.write("Model loaded from:", MODEL_PATH)
-st.write("File exists:", MODEL_PATH.exists())
-st.write(
-    "File size (MB):",
-    round(
-        MODEL_PATH.stat().st_size / (1024 * 1024),
-        2
-    )
-)
-
-st.write("First FC Weights:")
-st.write(model.fc.weight[0][:10])
 # -----------------------------------
 # HEADER
 # -----------------------------------
@@ -242,26 +230,6 @@ predicted_class = classes[
     prediction.item()
 ]
 
-# -----------------------------------
-# DEBUG
-# -----------------------------------
-
-st.markdown("---")
-
-st.subheader("Debug Information")
-
-st.write("Prediction Index:", prediction.item())
-
-st.write("Predicted Class:", predicted_class)
-
-st.write("Raw Logits:")
-
-st.write(output.tolist())
-
-st.write("Probabilities:")
-
-st.write(probabilities.tolist())
-
 st.markdown("---")
 
 st.success(
@@ -275,6 +243,7 @@ st.info(
 st.progress(
     float(confidence) / 100
 )
+
 # -----------------------------------
 # MODEL INFORMATION
 # -----------------------------------

@@ -76,6 +76,9 @@ def load_model():
 
 
 model = load_model()
+st.write("Model loaded from:", MODEL_PATH)
+st.write("File exists:", MODEL_PATH.exists())
+st.write("File size (MB):", round(MODEL_PATH.stat().st_size / (1024 * 1024), 2))
 
 # -----------------------------------
 # HEADER

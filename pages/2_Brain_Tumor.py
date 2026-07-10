@@ -56,7 +56,9 @@ labels = {
 @st.cache_resource
 def load_model():
 
-    model = models.resnet18(weights=None)
+    model = models.resnet18(
+        weights=None
+    )
 
     model.fc = nn.Linear(
         model.fc.in_features,
@@ -76,10 +78,21 @@ def load_model():
 
 
 model = load_model()
+
+# -----------------------------------
+
 st.write("Model loaded from:", MODEL_PATH)
 st.write("File exists:", MODEL_PATH.exists())
-st.write("File size (MB):", round(MODEL_PATH.stat().st_size / (1024 * 1024), 2))
+st.write(
+    "File size (MB):",
+    round(
+        MODEL_PATH.stat().st_size / (1024 * 1024),
+        2
+    )
+)
 
+st.write("First FC Weights:")
+st.write(model.fc.weight[0][:10])
 # -----------------------------------
 # HEADER
 # -----------------------------------
@@ -230,6 +243,26 @@ predicted_class = classes[
     prediction.item()
 ]
 
+# -----------------------------------
+# DEBUG
+# -----------------------------------
+
+st.markdown("---")
+
+st.subheader("Debug Information")
+
+st.write("Prediction Index:", prediction.item())
+
+st.write("Predicted Class:", predicted_class)
+
+st.write("Raw Logits:")
+
+st.write(output.tolist())
+
+st.write("Probabilities:")
+
+st.write(probabilities.tolist())
+
 st.markdown("---")
 
 st.success(
@@ -243,7 +276,6 @@ st.info(
 st.progress(
     float(confidence) / 100
 )
-
 # -----------------------------------
 # MODEL INFORMATION
 # -----------------------------------
@@ -395,7 +427,7 @@ if st.button(
         "pages/1_Model_Selection.py"
     )
 
-    st.markdown("---")
+st.markdown("---")
 
 if st.button(
     "View Project Metrics",

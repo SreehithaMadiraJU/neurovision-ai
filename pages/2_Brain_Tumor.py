@@ -28,7 +28,7 @@ st.set_page_config(
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-model_path = (
+MODEL_PATH = (
     BASE_DIR
     / "brain_tumor"
     / "models"
@@ -53,13 +53,10 @@ labels = {
     "notumor": "No Tumor Detected"
 }
 
-
 @st.cache_resource
 def load_model():
 
-    model = models.resnet18(
-        weights=None
-    )
+    model = models.resnet18(weights=None)
 
     model.fc = nn.Linear(
         model.fc.in_features,
@@ -68,7 +65,7 @@ def load_model():
 
     model.load_state_dict(
         torch.load(
-            model_path,
+            MODEL_PATH,
             map_location="cpu"
         )
     )
@@ -84,9 +81,7 @@ model = load_model()
 # HEADER
 # -----------------------------------
 
-st.title(
-    "Brain Tumor Detection"
-)
+st.title("Brain Tumor Detection")
 
 st.warning(
     """
@@ -117,9 +112,7 @@ Tumors may be benign or malignant and can
 affect normal brain function.
 """)
 
-with st.expander(
-    "Causes"
-):
+with st.expander("Causes"):
     st.write("""
 • Genetic mutations
 
@@ -130,9 +123,7 @@ with st.expander(
 • Unknown biological factors
 """)
 
-with st.expander(
-    "Symptoms"
-):
+with st.expander("Symptoms"):
     st.write("""
 • Persistent headaches
 
@@ -147,9 +138,7 @@ with st.expander(
 • Balance problems
 """)
 
-with st.expander(
-    "Tumor Types Detected"
-):
+with st.expander("Tumor Types Detected"):
     st.write("""
 • Glioma
 
@@ -188,7 +177,6 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file is None:
-
     st.stop()
 
 # -----------------------------------
@@ -197,22 +185,16 @@ if uploaded_file is None:
 
 image = Image.open(
     uploaded_file
-).convert(
-    "RGB"
-)
+).convert("RGB")
 
 transform = transforms.Compose([
-    transforms.Resize(
-        (224, 224)
-    ),
+    transforms.Resize((224, 224)),
     transforms.ToTensor()
 ])
 
 input_tensor = transform(
     image
-).unsqueeze(
-    0
-)
+).unsqueeze(0)
 
 # -----------------------------------
 # PREDICTION
@@ -224,9 +206,7 @@ with st.spinner(
 
     with torch.no_grad():
 
-        output = model(
-            input_tensor
-        )
+        output = model(input_tensor)
 
         probabilities = torch.softmax(
             output,
@@ -261,6 +241,10 @@ st.progress(
     float(confidence) / 100
 )
 
+# -----------------------------------
+# MODEL INFORMATION
+# -----------------------------------
+
 st.markdown("---")
 
 st.subheader(
@@ -278,6 +262,7 @@ Dataset : Brain Tumor MRI Dataset
 
 Framework : PyTorch
 """)
+
 # -----------------------------------
 # HEATMAP
 # -----------------------------------
@@ -348,7 +333,7 @@ with col2:
     )
 
 # -----------------------------------
-# HEATMAP INTERPRETATION
+# LEGEND
 # -----------------------------------
 
 st.markdown("---")
@@ -370,7 +355,7 @@ The highlighted regions indicate the areas that contributed most to the AI model
 """)
 
 # -----------------------------------
-# DISCLAIMER
+# FINAL DISCLAIMER
 # -----------------------------------
 
 st.warning(
@@ -396,29 +381,23 @@ st.caption(
 )
 
 # -----------------------------------
-# NAVIGATION
+# BACK BUTTON
 # -----------------------------------
 
-st.markdown("---")
+if st.button(
+    "Back To Model Selection",
+    use_container_width=True
+):
+    st.switch_page(
+        "pages/1_Model_Selection.py"
+    )
 
-col1, col2 = st.columns(2)
+    st.markdown("---")
 
-with col1:
-
-    if st.button(
-        "Back To Model Selection",
-        use_container_width=True
-    ):
-        st.switch_page(
-            "pages/1_Model_Selection.py"
-        )
-
-with col2:
-
-    if st.button(
-        "View Project Metrics",
-        use_container_width=True
-    ):
-        st.switch_page(
-            "pages/4_Project_Metrics.py"
-        )
+if st.button(
+    "View Project Metrics",
+    use_container_width=True
+):
+    st.switch_page(
+        "pages/4_Project_Metrics.py"
+    )
